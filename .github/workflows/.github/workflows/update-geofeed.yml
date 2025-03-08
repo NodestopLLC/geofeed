@@ -1,0 +1,33 @@
+name: Update Geofeed File
+
+on:
+  schedule:
+    - cron: '0 0 * * 1'  # Runs every Monday at midnight UTC
+  workflow_dispatch: # Allows manual triggering
+
+jobs:
+  update-geofeed:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Fetch Latest Geofeed Data
+        run: |
+          # Example: Fetch from an external API or manually update entries
+          echo "prefix,cc,region,city,postal" > geofeed.csv
+          echo "149.57.40.0/24,US,Virginia,Ashburn,20147" >> geofeed.csv
+          echo "136.0.40.0/24,US,New Jersey,Mountain Lakes,07046" >> geofeed.csv
+
+      - name: Check for Changes
+        run: |
+          git diff --exit-code geofeed.csv || echo "Changes detected"
+
+      - name: Commit and Push if Changed
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add geofeed.csv
+          git commit -m "Automated update of geofeed.csv" || exit 0
+          git push
